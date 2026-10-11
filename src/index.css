@@ -1,0 +1,150 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-base: #050B14;
+    --bg-surface: #0A1422;
+    --bg-surface-elevated: #0F1D30;
+    --bg-surface-hover: #14253D;
+    --border-subtle: #142236;
+    --border-light: #1E3352;
+    --accent-lime: #B8FF65;
+    --accent-lime-dim: rgba(184, 255, 101, 0.15);
+    --accent-cyan: #38BDF8;
+    --accent-amber: #F59E0B;
+    --accent-red: #EF4444;
+    --text-primary: #F1F5F9;
+    --text-secondary: #94A3B8;
+    --text-muted: #64748B;
+  }
+
+  * {
+    border-color: var(--border-subtle);
+  }
+
+  body {
+    background-color: #050B14;
+    color: #F1F5F9;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Typography tokens for UrjaSetu design system */
+.font-display {
+  font-family: 'Space Grotesk', 'Inter', -apple-system, sans-serif;
+}
+
+.font-devanagari {
+  font-family: 'Noto Sans Devanagari', -apple-system, sans-serif;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.font-sans {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Custom utility & precision command center styles */
+.bg-command-bg {
+  background-color: #050B14;
+}
+
+.bg-command-surface {
+  background-color: #0A1422;
+}
+
+.bg-command-surface-elevated {
+  background-color: #0E1A2C;
+}
+
+.border-command-subtle {
+  border-color: #142236;
+}
+
+.border-command-light {
+  border-color: #1C304C;
+}
+
+.text-command-lime {
+  color: #B8FF65;
+}
+
+.bg-command-lime-dim {
+  background-color: rgba(184, 255, 101, 0.08);
+}
+
+.border-command-lime {
+  border-color: rgba(184, 255, 101, 0.4);
+}
+
+.glow-lime-sm {
+  box-shadow: 0 0 12px -2px rgba(184, 255, 101, 0.25);
+}
+
+.glow-cyan-sm {
+  box-shadow: 0 0 12px -2px rgba(56, 189, 248, 0.25);
+}
+
+/* Subtle grid texture overlay for technical command center feel */
+.grid-mesh-bg {
+  background-image: 
+    linear-gradient(to right, rgba(20, 34, 54, 0.35) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(20, 34, 54, 0.35) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* Custom sleek scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: #050B14;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1C304C;
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #254066;
+}
+
+/* ─── Landing page: Enter the Grid orbital ring animations ───────────────── */
+@keyframes orbit-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes orbit-spin-reverse {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(-360deg); }
+}
+
+/* Page-level cinematic transition overlay — fades in over the full viewport */
+.cinematic-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, #061426 0%, #030912 65%);
+  opacity: 0;
+  transition: opacity 260ms cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+.cinematic-veil.visible {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orbit-ring-anim {
+    animation: none !important;
+  }
+}
