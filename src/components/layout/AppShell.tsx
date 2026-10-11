@@ -5,6 +5,7 @@ import { OverviewPage } from '../overview/OverviewPage';
 import { SectionPlaceholder } from '../placeholders/SectionPlaceholder';
 import { NAV_ITEMS } from '../../constants/navigation';
 import type { NavItemId } from '../../types';
+import { MeterIntelligencePage } from '../meters/MeterIntelligencePage';
 
 interface AppShellProps {
   activeItem: NavItemId;
@@ -40,12 +41,15 @@ export const AppShell: React.FC<AppShellProps> = ({
         {/* Dynamic Main Content Region */}
         <main className="flex-1 overflow-hidden relative flex flex-col">
           {activeItem === 'overview' ? (
-            <OverviewPage />
-          ) : (
-            <SectionPlaceholder
-              item={currentNav}
-              onBackToOverview={() => onSelectItem('overview')}
-            />
+  <OverviewPage />
+) : activeItem === 'meter-intelligence' ? (
+  <MeterIntelligencePage />
+) : (
+  <SectionPlaceholder
+    item={currentNav}
+    onBackToOverview={() => onSelectItem('overview')}
+  />
+
           )}
         </main>
       </div>
