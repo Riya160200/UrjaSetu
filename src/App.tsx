@@ -1,29 +1,57 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { AppShell } from './components/layout/AppShell';
 import { LandingPage } from './components/landing/LandingPage';
+import { NAV_ITEMS } from './constants/navigation';
 import type { NavItemId } from './types';
 
 /**
- * App — top-level router and transition orchestrator.
+ * App — top-level router and transition orchestrator with browser hash history support.
  *
- * The cinematic landing-to-dashboard journey works like this:
- *   1. LandingPage is mounted (view === 'landing').
- *   2. User clicks "Enter the Grid" → LandingPage triggers CinematicEarth.enterGrid().
- *   3. Three.js camera zooms toward India over ~2.2 s.
- *   4. Near the end of that zoom the CinematicEarth overlays its own full-canvas iris fade.
- *   5. Simultaneously, LandingPage calls onExplore() — which we receive here.
- *   6. Here we also apply a page-level CSS veil (.cinematic-veil → .visible) so the
- *      view switch from 'landing' → 'app' is completely hidden behind it.
- *   7. After the React re-render has committed (dashboard is mounted), we lift the veil
- *      using a rAF + short timeout so the dashboard fades in elegantly.
+ * Supports:
+ *  - Direct dashboard deep-linking (e.g. /#/overview, /#/grid-regions) and page refresh preservation
+ *  - Native browser Back and Forward navigation via hashchange events
+ *  - High-performance cinematic transition from Landing to Dashboard using an overlay veil
  */
+
+function parseRoute(): { view: 'landing' | 'app'; activeItem: NavItemId } {
+  if (typeof window === 'undefined') {
+    return { view: 'landing', activeItem: 'overview' };
+  }
+  const rawHash = window.location.hash.replace(/^#\/?/, '').trim();
+  if (!rawHash || rawHash === 'landing') {
+    return { view: 'landing', activeItem: 'overview' };
+  }
+
+  const validNavIds = NAV_ITEMS.map((item) => item.id);
+  if (validNavIds.includes(rawHash as NavItemId)) {
+    return { view: 'app', activeItem: rawHash as NavItemId };
+  }
+
+  if (rawHash === 'dashboard') {
+    return { view: 'app', activeItem: 'overview' };
+  }
+
+  return { view: 'landing', activeItem: 'overview' };
+}
+
 export function App() {
-  const [view, setView] = useState<'landing' | 'app'>('landing');
-  const [activeItem, setActiveItem] = useState<NavItemId>('overview');
+  const [routeState, setRouteState] = useState(parseRoute);
+  const { view, activeItem } = routeState;
 
   // DOM ref for the full-viewport veil element — updated via className, never via React state,
   // so the transition never triggers an extra re-render at a critical moment.
   const veilRef = useRef<HTMLDivElement>(null);
+
+  // Synchronize route changes from browser navigation (Back / Forward)
+  useEffect(() => {
+    const handleHashChange = () => {
+      const nextRoute = parseRoute();
+      setRouteState(nextRoute);
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   const handleExplore = useCallback(() => {
     const veil = veilRef.current;
@@ -35,15 +63,26 @@ export function App() {
 
     // 2. Switch view after one rAF so the veil paint lands before the DOM swap
     requestAnimationFrame(() => {
-      setView('app');
+      setRouteState({ view: 'app', activeItem: 'overview' });
+      window.location.hash = '#/overview';
 
-      // 3. Lift the veil once the dashboard has rendered (two frames + small buffer)
+      // 3. Lift the veil once the dashboard has mounted (two frames + small buffer)
       requestAnimationFrame(() => {
         setTimeout(() => {
           if (veil) veil.classList.remove('visible');
         }, 180);
       });
     });
+  }, []);
+
+  const handleSelectItem = useCallback((id: NavItemId) => {
+    setRouteState({ view: 'app', activeItem: id });
+    window.location.hash = `#/${id}`;
+  }, []);
+
+  const handleReturnToLanding = useCallback(() => {
+    setRouteState((prev) => ({ ...prev, view: 'landing' }));
+    window.location.hash = '#/';
   }, []);
 
   return (
@@ -56,8 +95,8 @@ export function App() {
       ) : (
         <AppShell
           activeItem={activeItem}
-          onSelectItem={setActiveItem}
-          onReturnToLanding={() => setView('landing')}
+          onSelectItem={handleSelectItem}
+          onReturnToLanding={handleReturnToLanding}
         />
       )}
     </>

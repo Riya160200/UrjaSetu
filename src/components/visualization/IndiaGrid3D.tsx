@@ -21,6 +21,7 @@ import { GridTooltip } from './GridTooltip';
 import { NodeDetailCard } from './NodeDetailCard';
 import { StateDetailCard, type SelectedStateData } from './StateDetailCard';
 import { Loader2, AlertCircle } from 'lucide-react';
+import { preloadGeoData } from '../../utils/geoCache';
 
 interface GeoFeature {
   type: string;
@@ -914,16 +915,11 @@ export const IndiaGrid3D = () => {
     resizeObserver.observe(canvasWrapper);
 
     // Fetch GeoJSON geographic boundaries (Election Commission / DataMeet ADM1) & World Land TopoJSON
-    Promise.all([
-      fetch('/india-states.geojson').then((res) => {
-        if (!res.ok) throw new Error('Failed to fetch /india-states.geojson');
-        return res.json();
-      }),
-      fetch('/world-land-110m.json')
-        .then((res) => (res.ok ? res.json() : null))
-        .catch(() => null),
-    ])
+    preloadGeoData()
       .then(([indiaData, worldData]) => {
+        if (!indiaData) {
+          throw new Error('No India geo boundary data available');
+        }
         geoDataRef.current = indiaData as GeoData;
         if (worldData && worldData.objects && worldData.objects.land) {
           const landFeatures = topojson.feature(
@@ -1223,8 +1219,8 @@ export const IndiaGrid3D = () => {
           onTogglePreset={handleTogglePreset}
         />
 
-        {/* Compact Legend */}
-        <GridLegend />
+        {/* Compact Legend (hidden when node or state inspector card is open to prevent overlap) */}
+        {!selectedNode && !selectedState && <GridLegend />}
 
         {/* Mouse Hover Tooltip */}
         <GridTooltip hovered={hoveredEntity} />
