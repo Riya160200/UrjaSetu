@@ -175,3 +175,26 @@ def test_end_to_end_federated_loop():
     r2 = server.run_round(round_num=2, local_epochs=1, mu=0.01, dp_sigma=0.1)
     assert r2["round"] == 2
     assert len(server.round_history) == 2
+
+
+def test_experiment_serialization(tmp_path):
+    """Test experiment runner execution and JSON serialization matching frontend schema."""
+    from .run_experiment import run_experiment
+
+    out_file = str(tmp_path / "test_results.json")
+    payload = run_experiment(rounds=2, local_epochs=1, seed=42, output_path=out_file)
+
+    assert os.path.exists(out_file)
+    with open(out_file, "r") as f:
+        loaded = json.load(f)
+
+    assert "metadata" in loaded
+    assert "privacy_budget" in loaded
+    assert "regional_clients" in loaded
+    assert "benchmarks" in loaded
+    assert "non_iid_drift" in loaded
+    assert "fedavg" in loaded["benchmarks"]
+    assert "fedprox" in loaded["benchmarks"]
+    assert "centralized" in loaded["benchmarks"]
+    assert "local_only" in loaded["benchmarks"]
+    assert len(loaded["benchmarks"]["fedavg"]["rounds_history"]) == 2
